@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        nav {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="#" id="link-signup">Sign Up</a>
+            <a href="#" id="link-login">Log In</a>
+            <a href="#" id="link-profile">Profile</a>
+            <a href="#" id="link-posts">Posts</a>
+        </div>
+    </nav>
+
+    <div class="container" id="signup-page">
+        <h1>Sign Up</h1>
+        <form id="signup-form">
+            <div>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+
+    <div class="container hidden" id="profile-page">
+        <h1>Profile</h1>
+        <button id="logout-button">Logout</button>
+        <form id="post-form">
+            <div>
+                <label for="post-content">Create Post</label>
+                <textarea id="post-content" rows="4" required></textarea>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div class="container hidden" id="posts-page">
+        <h1>Posts</h1>
+        <!-- Posts will be dynamically loaded here -->
+    </div>
+
+    <div class="container hidden" id="login-page">
+        <h1>Log In</h1>
+        <form id="login-form">
+            <div>
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" required>
+            </div>
+            <div>
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+
+    <script>
+        let isLoggedIn = false; // Simulates user authentication
+
+        function logout() {
+            isLoggedIn = false;
+            showPage('login-page');
+        }
+
+        function showPage(pageId) {
+            const pages = ['signup-page', 'login-page', 'profile-page', 'posts-page'];
+            pages.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        document.getElementById('signup-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const fullName = document.getElementById('fullName').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:5005/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, fullName, password }),
+            });
+
+            if (response.ok) {
+                isLoggedIn = true;
+                showPage('profile-page');
+            } else {
+                alert('Sign Up Failed. Please try again.');
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', logout);
+
+        document.getElementById('link-signup').addEventListener('click', () => showPage('signup-page'));
+        document.getElementById('link-login').addEventListener('click', () => showPage('login-page'));
+        document.getElementById('link-profile').addEventListener('click', () => {
+            if (isLoggedIn) {
+                showPage('profile-page');
+            } else {
+                alert('You need to log in first.');
+                showPage('login-page');
+            }
+        });
+        document.getElementById('link-posts').addEventListener('click', () => {
+            if (isLoggedIn) {
+                showPage('posts-page');
+            } else {
+                alert('You need to log in first.');
+                showPage('login-page');
+            }
+        });
+
+        document.getElementById('post-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const content = document.getElementById('post-content').value;
+
+            const response = await fetch('http://localhost:5005/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content }),
+            });
+
+            if (response.ok) {
+                alert('Post created successfully!');
+                document.getElementById('post-form').reset();
+            } else {
+                alert('Failed to create post.');
+            }
+        });
+
+        // Default to signup page
+        showPage('signup-page');
+    </script>
+</body>
+</html>
